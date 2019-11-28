@@ -4,8 +4,6 @@
 
 La idea de este repositorio es brindar una guía paso a paso de cómo hacer una integración por API (también conocido como checkout transparente) de [MercadoPago](https://developers.mercadopago.com).
 
-> En esta guía todos los comandos están orientados Mac OS X. Se deberán adaptar los mismos para otros sistemas operativos
-
 ## Tecnologías utilizadas
 
 En este ejemplo se utiliza [nodejs](https://www.freecodecamp.org/news/what-exactly-is-node-js-ae36e97449f5/) para el desarrollo tanto del frontend como el backend de la apicación.
@@ -24,6 +22,8 @@ Algunos links útiles:
  4. [Agregando dinamismo a nuestro formulario de pago](#Paso-4---Agregando-dinamismo-a-nuestro-formulario-de-pago)
  5. [Creando el Card Token](#Paso-5---Creando-el-Card-Token)
  6. [Creando API para realizar el pago](#Paso-6---Creando-API-para-realizar-el-pago)
+
+> En esta guía todos los comandos están orientados Mac OS X. Se deberán adaptar los mismos para otros sistemas operativos
 
 ## Paso 1 - Creando la aplicación
 

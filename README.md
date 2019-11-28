@@ -15,13 +15,13 @@ Algunos links útiles:
 * [mercadopago](https://npmjs.com/package/mercadopago) - Mercado Pago official SDK
 
 
---- AGREGAR TABLA DE CONTENIDOS ---
- 1. [API Endpoints](#API-endpoints)
- 2. [Development environment](#Development-environment)
-    1. [Install & Setup go](#Install-&-Setup-go)
-    2. [Debugging your app](#Debugging-your-app)
- 3. [Dependency managment tool](#Dependency-managment-tool)
- 4. [Testing your app](#Testing-your-app)
+## Tabla de contenido
+ 1. [Creando la aplicación](#Paso-1---Creando-la-aplicación)
+ 2. [Agregando la SDK de MercadoPago](#Paso-2---Agregando-la-SDK-de-MercadoPago)
+ 3. [Formulario de pagos](#Paso-3---Formulario-de-pagos)
+ 4. [Agregando dinamismo a nuestro formulario de pago](#Paso-4---Agregando-dinamismo-a-nuestro-formulario-de-pago)
+ 5. [Creando el Card Token](#Paso-5---Creando-el-Card-Token)
+ 6. [Creando API para realizar el pago](#Paso-6---Creando-API-para-realizar-el-pago)
 
 ## Paso 1 - Creando la aplicación
 
@@ -91,12 +91,6 @@ export default App;
 ```
 
 Como se puede observar en el ejemplo de código anterior, en el método `componentDidMount` se debe configurar tu public key. Es importante substituir el texto *YOUR_SANDBOX_PUBLIC_KEY* por una **public key válida**, ya sea de *sandbox* si estamos realizando pruebas o de producción si queremos subir nuestro código a producción.
-
-Ejemplo de credenciales:
-
-```javascript
-window.Mercadopago.setPublishableKey('TEST-0f1ac411-40d9-494c-8c26-a7e6795e70cb');
-```
 
 ## Paso 3 - Formulario de pagos
 
@@ -436,7 +430,7 @@ class App extends Component {
   }
 ```
 
-### Step 5 - Backend Side (API)
+## Paso 6 - Creando API para realizar el pago
 
 El formulario de pago anterior tiene la responsabilidad de recolectar la información del pago, pero falta la parte *más importante! hacer el pago! :)*
 
@@ -448,7 +442,7 @@ Cuando el usuario realice "click" en pagar, la siguiente información será envi
 
 Para finalizar el tutorial se deja como ejemplo cómo recibir el pago en un backend muy sencillo realizado con nodejs + express.
 
-#### Creating the Backend
+### Creando la API
 
 Creemos una carpeta llamada `/api` y realicemos un init utilizando NPM.
 
@@ -468,9 +462,11 @@ Ejecutar el siguiente comando para instalarlos:
 $ npm install express body-parser mercadopago --save
 ```
 
+### Realizando el pago
+
 Dentro de la carpeta `app` crear un archivo vacío llamado *index.js*. 
 
-A continuación se deja un ejemplo completo de cómo manejar el pago desde el backend
+A continuación se deja un ejemplo completo de cómo manejar el pago desde el backend. Copiar y pegar el código debajo en el archivo `app/index.js`.
 
 ``` javascript
 const express = require('express');

@@ -1,3 +1,5 @@
+> Traducción a portugués está pendiente. Se aceptan PRs :)
+> 
 # Como desenvolver uma integração de pagamentos em menos de 30 minutos
 
 La idea de este repositorio es brindar una guía paso a paso de cómo hacer una integración por API (también conocido como checkout transparente) de [MercadoPago](https://developers.mercadopago.com).
@@ -12,9 +14,13 @@ Algunos links útiles:
 * [express](https://npmjs.com/package/express) - Framework para el desarrollo de nuestro backend
 * [mercadopago](https://npmjs.com/package/mercadopago) - Mercado Pago official SDK
 
+
+--- AGREGAR TABLA DE CONTENIDOS ---
+
+
 ## Paso 1 - Creando la aplicación
 
-Creemos una carpeta para almacenar nuestra aplicación.
+Creemos una carpeta para almacenar nuestra aplicación. En este tutorial le llamaremos *mp-cho-transparente*.
 
 ```
 $ mkdir mp-cho-transparente && cd mp-cho-transparente
@@ -38,7 +44,7 @@ $ npm run start
 
 Siguiendo el [sitio de desarrolladores](https://developers.mercadopago.com) oficial de MercadoPago, la documentación que seguiremos es [Receba um pagamento com cartão](https://www.mercadopago.com.br/developers/pt/guides/payments/api/receiving-payment-by-card/).
 
-### Agregar la SDK de javascript
+### Agregando la SDK de javascript
 
 Agregar `mercadopago.js` a tu html principal. En nuestro ejemplo, es el arcchivo `public/index.html`.
 
@@ -48,7 +54,7 @@ Agregar `mercadopago.js` a tu html principal. En nuestro ejemplo, es el arcchivo
     ...
 ```
 
-### Configura tus credenciales
+### Configurando tus credenciales
 
 Para configurar [tus credenciales](https://www.mercadopago.com/mlb/account/credentials) de MercadoPago en la SDK, dirigirse a nuestro componente de React de ejemplo `src/App.js`. Este componente al finalizar nuestro trabajo será el responsable de dibujar el formulario de tarjeta para recibir pagos.
 
@@ -59,6 +65,14 @@ import React, { Component } from 'react';
 import './App.css';
 
 class App extends Component {
+  constructor(props){
+    super(props);
+
+    this.state = {
+      submit: false,
+    };
+  }
+
   componentDidMount() {
     window.Mercadopago.setPublishableKey('YOUR_SANDBOX_PUBLIC_KEY');
   }
@@ -83,7 +97,7 @@ Utilizaremos el formulario de pagos de la sección *Capturar dados do cartão* d
 
 Pero algo **importante** es que **debemos adaptarlo a React** ya que los eventos javascript inline exitentes no son compatibles con React.
 
-````javascript
+``` html
 <form action="" method="post" id="pay" name="pay">
   <fieldset>
     <ul>
@@ -253,33 +267,42 @@ input[type=submit]:hover {
 }
 ```
 
-## Step 4 - Guessing, Card Token, Identification Type & Events
+## Paso 3 - Agregando dinamismo a nuestro formulario de pago
 
-Looking what we just:
+Hasta ahora hemos realizado lo siguiente:
+- Creamos la aplicación react
+- Agregamos y configuramos la SDK javascript de MercadoPago
+- Creamos un formulario de ingreso de tarjetas para recibir el pago (actualmente de comportamiento estático)
 
-- Created the application
-- Added and configured the Mercado Pago SDK
-- Added and adapted the Payment Form
+En esta sección agregaremos lógica al formulario de pagos para hacer su funcionamiento dinámico. Agregaremos al formulario soporte a tipos de documentos (CPF, CNPF) y luego agregaremos soporte al *guessing* del medio de pago.
 
-The form doesn't work by itself, we need to attach some events to the input and use the SDK to initialize the magic.
+### Tipos de documento
 
-#### Identification Types
+Los tipos de documento (o inglés *identification types*) son los tipos de documentos válidos de cada país.
 
-Remember that I told you that the Identification `<select>` was empty?. This is because the SDK provides you a method (`getIdentificationTypes`) to auto populate this field using your credentials
- 
-````javascript
-window.Mercadopago.getIdentificationTypes();
-````
+Para popular el selector de documento podemos utilizar la función `getIdentificationTypes` de la *SDK de MercadoPago*. Debemos colocar la llamada en el momento que el componente se monta utilizando la función `componentDiMount`.
 
-We need to add this method (`getIdentificationTypes`) inside `componentDidMount`
+``` javascript
+class App extends Component {
+  ...
+  ...
 
-> This method is in charge of populating the identification types `<select>`
+  componentDidMount() {
+    ...
+    ...
+    window.Mercadopago.getIdentificationTypes();
+  }
+```
 
-#### Card Guessing
+Listo! Con esta acción ya tenemos el selector de tipo de documentos funcionando.
 
-One of the fields required to process a payment is the `Payment Method Id`* entered by the user. For getting this field the SDK provides you a method call `getPaymentMethod`that using the first 6 digits of the credit card number entered is going to guess the `Payment Method Id`.
+### Card Guessing
 
-To do this we need to add the `onChange` prop on the credit card number `<input>`
+Uno de los datos más importantes para podamos procesar el pago, es conocer cuál es el medio de pago que ingresará el usuario (visa, master, american express, etc).
+
+Para obtener el medio de pago de forma dinámica también usaremos la *SDK de MercadoPago*. Para obtener el medio de pago utilizaremos el evento `onChange` del input del formulario llamado `cardNumber` y la función `getPaymentMethod` de la SDK. La función `getPaymentMethod` requiere como parámetro los primeros 6 dígitos de la tarjeta (también llamado *BIN*).
+
+Agreguemos el evento `onChange` al input `cardNumber`:
 
 ```javascript
 <input
@@ -292,21 +315,29 @@ To do this we need to add the `onChange` prop on the credit card number `<input>
 />
 ```
 
+Y agreguemos la función para obtener el medio de pago que llamamos `guessingPaymentMethod` y su correspondiente callback `setPaymentMethodInfo`
+
 ```javascript
+class App extends Component {
+  constructor(props){
+    ...
+    ...
+
+    // Binding methods to class component
+    this.guessingPaymentMethod = this.guessingPaymentMethod.bind(this)
+    this.setPaymentMethodInfo = this.setPaymentMethodInfo.bind(this);
+  }
+
   guessingPaymentMethod(event) {
     const bin = event.currentTarget.value;
 
     if (bin.length >= 6) {
       window.Mercadopago.getPaymentMethod({
-        //"bin": bin.substring(0, 6),
+        "bin": bin.substring(0, 6),
       }, this.setPaymentMethodInfo);
     }
   }
-```
 
-Then we need to create the method `setPaymentMethodInfo` that we are using as a callback on `guessingPaymentMethod`. This method is going to be in charge of population the hidden `<input>` with the value from the guessing
-
-```javascript
   setPaymentMethodInfo(status, response) {
     if (status === 200) {
       const paymentMethodElement = document.querySelector('input[name=paymentMethodId]');
@@ -326,10 +357,16 @@ Then we need to create the method `setPaymentMethodInfo` that we are using as a 
     } else {
       alert(`Payment Method not Found`);
     }
-  };
+  }
+
+  ...
+  ...
+}
 ```
 
-#### Tokenization
+## Paso 5 - Creando el Card Token
+
+
 
 This is the process when all of the payer information is converted into a safe id to prevent hackers to stole of your information.
 

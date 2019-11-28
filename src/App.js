@@ -2,8 +2,64 @@ import React, { Component } from 'react';
 import './App.css';
 
 class App extends Component {
+  constructor(props){
+    super(props);
+    
+    this.state = {
+      submit: false,
+    };
+
+    this.guessingPaymentMethod = this.guessingPaymentMethod.bind(this)
+    this.setPaymentMethodInfo = this.setPaymentMethodInfo.bind(this);
+  }
+
   componentDidMount() {
     window.Mercadopago.setPublishableKey('TEST-fe993d79-6212-4cab-be80-c6457ba004b0');
+    window.Mercadopago.getIdentificationTypes();
+  }
+
+  /**
+   * This method is executed when credit card input has more than 6 characters
+   * Then calls getPaymentMethod function of the MercadoPago SDK
+   *
+   * @param {Object} event HTML event
+   */
+  guessingPaymentMethod(event) {
+    const bin = event.currentTarget.value;
+
+    if (bin.length >= 6) {
+      window.Mercadopago.getPaymentMethod({
+        "bin": bin.substring(0, 6),
+      }, this.setPaymentMethodInfo);
+    }
+  }
+
+  /**
+   * This method is going to be the callback one from getPaymentMethod of the MercadoPago Javascript SDK
+   * Is going to be creating a hidden input with the paymentMethodId obtain from the SDK
+   *
+   * @param {Number} status HTTP status code
+   * @param {Object} response API Call response
+   */
+  setPaymentMethodInfo(status, response) {
+    if (status === 200) {
+      const paymentMethodElement = document.querySelector('input[name=paymentMethodId]');
+
+      if (paymentMethodElement) {
+        paymentMethodElement.value = response[0].id;
+      } else {
+        const form = document.querySelector('#pay');
+        const input = document.createElement('input');
+
+        input.setAttribute('name', 'paymentMethodId');
+        input.setAttribute('type', 'hidden');
+        input.setAttribute('value', response[0].id);
+
+        form.appendChild(input);
+      }
+    } else {
+      alert(`Payment Method not Found`);
+    }
   }
 
   render() {
@@ -34,6 +90,7 @@ class App extends Component {
           placeholder="4509953566233704"
           autoComplete="off"
           maxLength={16}
+          onChange={this.guessingPaymentMethod}
         />
       </li>
       <li>

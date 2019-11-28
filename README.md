@@ -16,7 +16,12 @@ Algunos links útiles:
 
 
 --- AGREGAR TABLA DE CONTENIDOS ---
-
+ 1. [API Endpoints](#API-endpoints)
+ 2. [Development environment](#Development-environment)
+    1. [Install & Setup go](#Install-&-Setup-go)
+    2. [Debugging your app](#Debugging-your-app)
+ 3. [Dependency managment tool](#Dependency-managment-tool)
+ 4. [Testing your app](#Testing-your-app)
 
 ## Paso 1 - Creando la aplicación
 
@@ -67,10 +72,6 @@ import './App.css';
 class App extends Component {
   constructor(props){
     super(props);
-
-    this.state = {
-      submit: false,
-    };
   }
 
   componentDidMount() {
@@ -90,6 +91,12 @@ export default App;
 ```
 
 Como se puede observar en el ejemplo de código anterior, en el método `componentDidMount` se debe configurar tu public key. Es importante substituir el texto *YOUR_SANDBOX_PUBLIC_KEY* por una **public key válida**, ya sea de *sandbox* si estamos realizando pruebas o de producción si queremos subir nuestro código a producción.
+
+Ejemplo de credenciales:
+
+```javascript
+window.Mercadopago.setPublishableKey('TEST-0f1ac411-40d9-494c-8c26-a7e6795e70cb');
+```
 
 ## Paso 3 - Formulario de pagos
 
@@ -267,10 +274,10 @@ input[type=submit]:hover {
 }
 ```
 
-## Paso 3 - Agregando dinamismo a nuestro formulario de pago
+## Paso 4 - Agregando dinamismo a nuestro formulario de pago
 
 Hasta ahora hemos realizado lo siguiente:
-- Creamos la aplicación react
+- Creamos la aplicación react 
 - Agregamos y configuramos la SDK javascript de MercadoPago
 - Creamos un formulario de ingreso de tarjetas para recibir el pago (actualmente de comportamiento estático)
 
@@ -366,21 +373,34 @@ class App extends Component {
 
 ## Paso 5 - Creando el Card Token
 
+En este paso encriptaremos los datos de tarjeta de forma segura desde nuestro frontend directo contra el entorno de MercadoPago respetando el estándar (PCI)[https://en.wikipedia.org/wiki/Payment_Card_Industry_Data_Security_Standard].
 
+Para lograrlo nuevamente la *SDK de MercadoPago* provee una función llamada `createToken` que nos permite realizar esta tarea. En nuestro caso, una vez que el usuario realice el *submit* realizaremos la encriptación y posteriormente en pasos siguientes dejaremos continuar para poder realizar el pago
 
-This is the process when all of the payer information is converted into a safe id to prevent hackers to stole of your information.
-
-How we do this? The SDK Provides a method call `createToken` to convert this information into the safe id (token)
-
-To achieve this we need to attach a `onSubmit` event for the checkout form
+Agregamos el evento `onSubmit` a nuestro formulario junto con una función dentro de nuestro componente llamada igual.
 
 ```javascript
 <form action="" method="post" id="pay" name="pay" onSubmit={this.onSubmit}>
 ```
 
-Then we need to add the `onSubmit` method that is going to use the `createToken` provided by the SDK
+Dentro de la función `onSubmit` utilizaremos `createToken` y para manejar la respuesta implementamos un *callback* llamado `sdkResponseHandler`.
 
 ```javascript
+class App extends Component {
+  constructor(props){
+    ...
+    ...
+    this.sdkResponseHandler = this.sdkResponseHandler.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+
+    this.state = {
+      submit: false,
+    };
+
+  }
+  ...
+  ...
+
   onSubmit(event) {
     event.preventDefault();
 
@@ -390,61 +410,7 @@ Then we need to add the `onSubmit` method that is going to use the `createToken`
 
     return false;
   }
-```
 
-This method is going to generate the safe id (`token`) to be added on the on the `<form>`. To do this we need copy the example from the [Developers Site](https://www.mercadopago.com.br/developers/pt/guides/payments/api/receiving-payment-by-card/).
-
-```javascript
-  sdkResponseHandler(status, response) {
-    if (status !== 200 && status !== 201) {
-      alert("verify filled data");
-    } else {
-      const form = document.querySelector('#pay');
-      const card = document.createElement('input');
-      
-      card.setAttribute('name', 'token');
-      card.setAttribute('type', 'hidden');
-      card.setAttribute('value', response.id);
-      
-      form.appendChild(card);
-      form.submit();
-    }
-  };
-```
-
-If you see this example, once the `token` is generated is going to submit the form. This is causing that the `token` is generated again and before its generated again the form is submitted again. We need to add a variable on the state to stop this.
-
-```javascript
-  constructor(props){
-    super(props);
-
-    this.setPaymentMethodInfo = this.setPaymentMethodInfo.bind(this);
-    this.guessingPaymentMethod = this.guessingPaymentMethod.bind(this);
-    this.sdkResponseHandler = this.sdkResponseHandler.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-
-    this.state = {
-      submit: false,
-    };
-  }
-```
-
-Then we need to prevent the re generation of the `token` on the `onSubmit` method
-
-```javascript
-  onSubmit(event) {
-    event.preventDefault();
-
-    if (!this.state.submit) {
-      const form = document.getElementsByTagName('form')[0];
-      window.Mercadopago.createToken(form, this.sdkResponseHandler);
-    }
-  }
-```
-
-Now we just need to update this state variable in order to work correctly
-
-```javascript
   sdkResponseHandler(status, response) {
     if (status !== 200 && status !== 201) {
       alert("verify filled data");
@@ -467,142 +433,96 @@ Now we just need to update this state variable in order to work correctly
       form.appendChild(card);
       form.submit();
     }
-  };
+  }
 ```
-
-#### Party!
-
-You just did the payment form and capture all the necessary information to process the payment
-
-![Party Gif](https://user-images.githubusercontent.com/4379982/62431004-00064180-b6fa-11e9-83a0-c05fae609ba4.gif)
 
 ### Step 5 - Backend Side (API)
 
-The payment form created previously is going to be making a `POST` to our Backend with the next information:
+El formulario de pago anterior tiene la responsabilidad de recolectar la información del pago, pero falta la parte *más importante! hacer el pago! :)*
+
+Cuando el usuario realice "click" en pagar, la siguiente información será enviada en via POST del formulario
 
 * email - Payer email
-* paymentMethodId - Payment Method Id from Guessing
-* token - Safe Id (`token`) generated from the Mercado Pago API
+* paymentMethodId - Payment Method Id
+* token - Card Token
 
-Now we need to create our Backend to receive this information and make the payment
+Para finalizar el tutorial se deja como ejemplo cómo recibir el pago en un backend muy sencillo realizado con nodejs + express.
 
 #### Creating the Backend
 
-Let's start creating a `/api` folder on the `root` of our project and initialize a [NPM](https://npmjs.com) project with the next command:
+Creemos una carpeta llamada `/api` y realicemos un init utilizando NPM.
 
 ```
 $ npm init
 ```
 
-> The previous command generated a `package.json` file
-
-Now we can install the following dependencies:
+Ahora instalemos algunas dependencias que serán útiles:
 
 * [express](https://npmjs.com/package/express) - Web Framework
-* [body-parser](https://npmjs.com/package/body-parser) - Used to capture the `body` sent from the payemnt `<form>`
-* [mercadopago](https://npmjs.com/package/mercadopago) - Official NodeJS Mercado Pago SDK
+* [body-parser](https://npmjs.com/package/body-parser) - Útil para manejar el *body message*
+* [mercadopago](https://npmjs.com/package/mercadopago) - SDK nodejs de MercadoPago
 
-We can install them with the next command:
+Ejecutar el siguiente comando para instalarlos:
 
 ```
 $ npm install express body-parser mercadopago --save
 ```
 
-Once the dependencies were install, we can start writting our server. First we need an application entry point. We can create it with the next command:
+Dentro de la carpeta `app` crear un archivo vacío llamado *index.js*. 
 
-```
-$ touch index.js
-```
+A continuación se deja un ejemplo completo de cómo manejar el pago desde el backend
 
-### Step 6 - Creating Server & Configuring SDK
-
-Now we need to create a basic `express` server
-
-```javascript
-const express = require('express');
-const app = express();
-
-app.listen(3001);
-```
-
-Next you need to attach the `body-parser` to be able to interpret the information sent via `POST` from the `<form>`
-
-```javascript
+``` javascript
 const express = require('express');
 const bodyParser = require('body-parser');
+const mercadopago = require('mercadopago');
 const app = express();
+const port = 3001;
+
+// Set the mercadopago credentials
+mercadopago.configurations.setAccessToken('YOUR_SANDBOX_ACCESS_TOKEN');
 
 // Attach the body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.listen(3001);
-```
-
-Now we need to add the [mercadopago](https://npmjs.com/package/mercadopago) SDK dependency and configure it.
-
-```javascript
-const mercadopago = require('mercadopago');
-
-mercadopago.configurations.setAccessToken('TEST-169606388010973-082414-1c20929a9443e6f84e4f7a855affe0a8-464359136');
-```
-
-Now we are ready to receive the information and make the payment
-
-### Step 7 - Making the Payment
-
-The first thing to do is creating the route for receiving the information from the `<form>` via `POST` HTTP method
-
-```javascript
 app.post('/pay', function (req, res) {
-  // Route handler
-});
-```
+  const token = req.body.token;
+  const paymentMethodId = req.body.paymentMethodId;
+  const email = req.body.email;
 
-We can get the payment information from the `request` object inside the `body` attribute
+  console.log(`Parameters receive ${JSON.stringify(req.body)}`);
 
-```javascript
-const token = req.body.token;
-const paymentMethodId = req.body.paymentMethodId;
-const email = req.body.email;
-```
-
-Then we can construct the payload to be sent to the Mercado Pago Payments API
-
-```javascript
+  // Creating payment payload
   const paymentData = {
     transaction_amount: 100,
     token: token,
-    description: 'MeliXP 2019 - Test Payment',
+    description: 'Test Payment',
     installments: 1,
     payment_method_id: paymentMethodId,
     payer: {
       email: email,
     },
   };
-```
 
-The SDK provides a way to create a payment call `save` using the `payment` object
-
-```javascript
-  mercadopago.payment.save(paymentData).then(function (payment) {
+  // Do payment
+  mercadopago.payment.save(paymentData).then((payment) => {
+    console.log('Payment done!');
     res.send(payment);
   }).catch(function (error) {
+    console.log(`There was an error making the payment ${error.message}`);
     res.status(500).send({
       message: error.message
     });
   });
+});
+
+console.log(`Application listening on port ${port}`);
+
+app.listen(port);
 ```
 
-The only thing missing is changing the `action` property on the `<form>` previously created
-
-```javascript
-<form action="http://localhost:3001/pay" method="post" id="pay" name="pay" onSubmit={this.o+nSubmit}>
-```
-
-You are all set!
-
-![Thumbs Up](https://user-images.githubusercontent.com/4379982/63641767-2cbed080-c68a-11e9-97fe-5350d4dc0d0c.gif)
+*Importante* nuevamente aquí substituir el texto *YOUR_SANDBOX_ACCESS_TOKEN* por tu **access token** y asegurarse que sea válido.
 
 ## Questions
 
-Follow me on Twitter [@elhloco‹](https://twitter.com/elhloco‹)
+Sígueme en Twitter [@elhloco‹](https://twitter.com/elhloco‹). PRs are welcome :)

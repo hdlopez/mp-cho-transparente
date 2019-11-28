@@ -525,4 +525,4 @@ app.listen(port);
 
 ## Questions
 
-Sígueme en Twitter [@elhloco‹](https://twitter.com/elhloco‹). PRs are welcome :)
+Sígueme en Twitter [@elhloco](https://twitter.com/elhloco). PRs are welcome :)

@@ -1,8 +1,10 @@
 > Traducción a portugués está pendiente. Se aceptan PRs :)
-> 
+
 # Como desenvolver uma integração de pagamentos em menos de 30 minutos
 
 La idea de este repositorio es brindar una guía paso a paso de cómo hacer una integración por API (también conocido como checkout transparente) de [MercadoPago](https://developers.mercadopago.com).
+
+> En esta guía todos los comandos están orientados Mac OS X. Se deberán adaptar los mismos para otros sistemas operativos
 
 ## Tecnologías utilizadas
 

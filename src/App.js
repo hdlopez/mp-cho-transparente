@@ -19,7 +19,7 @@ class App extends Component {
    * Set credentials and call initial methods
    */
   componentDidMount() {
-    window.Mercadopago.setPublishableKey('TEST-0f1ac411-40d9-494c-8c26-a7e6795e70cb');
+    window.Mercadopago.setPublishableKey('TEST-bfa01e2e-579f-400f-bca4-0f6be1d3affa');
     window.Mercadopago.getIdentificationTypes();
   }
 
@@ -213,7 +213,7 @@ class App extends Component {
               type="hidden"
               name="paymentMethodId"
             />
-            <input type="submit" value="Do Payment" />
+            <input type="submit" value="Pay" />
           </fieldset>
         </form>
       </div>

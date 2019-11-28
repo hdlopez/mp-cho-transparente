@@ -5,7 +5,7 @@ const app = express();
 const port = 3001;
 
 // Set the mercadopago credentials
-mercadopago.configurations.setAccessToken('TEST-169606388010973-082414-1c20929a9443e6f84e4f7a855affe0a8-464359136');
+mercadopago.configurations.setAccessToken('TEST-3423648294898849-100404-3ddbe6df8deba5db8ec35f5409c54c61-240497682');
 
 // Attach the body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -21,7 +21,7 @@ app.post('/pay', function (req, res) {
   const paymentData = {
     transaction_amount: 100,
     token: token,
-    description: 'MeliXP 2019 - Test Payment',
+    description: 'Test Payment',
     installments: 1,
     payment_method_id: paymentMethodId,
     payer: {
@@ -34,7 +34,7 @@ app.post('/pay', function (req, res) {
     console.log('Payment done!');
     res.send(payment);
   }).catch(function (error) {
-    console.log(`There was an error making the payment ${error.message}`);
+    console.log(`There was an error making the payment ${error}`);
     res.status(500).send({
       message: error.message
     });

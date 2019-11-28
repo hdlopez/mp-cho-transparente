@@ -63,6 +63,8 @@ Agregar `mercadopago.js` a tu html principal. En nuestro ejemplo, es el arcchivo
 
 ### Configurando tus credenciales
 
+> Las credenciales aquí utilizadas deben ser de una cuenta vendedor. Si la cuenta aún no es vendedor puede probar [aqui](https://www.mercadopago.com.ar/summary/seller-account-promo).
+
 Para configurar [tus credenciales](https://www.mercadopago.com/mlb/account/credentials) de MercadoPago en la SDK, dirigirse a nuestro componente de React de ejemplo `src/App.js`. Este componente al finalizar nuestro trabajo será el responsable de dibujar el formulario de tarjeta para recibir pagos.
 
 Lo primero que debemos hacer es convertir nuestro componente `App` a un *class component*. Luego utilizaremos el método `componentDidMount` para configurar nuestras credenciales. Debajo se muestra un ejemplo de cómo debería quedar el archivo archivo `src/App.js`:

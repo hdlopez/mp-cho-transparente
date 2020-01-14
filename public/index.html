@@ -27,9 +27,14 @@
     <title>React App</title>
   </head>
   <body>
-    <script src="https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js"></script>
+    <script src="%PUBLIC_URL%/mercadopago.debug.js"></script>
+    <!-- <script src="https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js"></script>-->
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script
+      src="%PUBLIC_URL%/wallet.js"
+      data-preference-id="239656545-6a4defae-be82-4bdb-94a2-c10eefb5c68e" >
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
